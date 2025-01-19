@@ -115,7 +115,7 @@ async def  run_browser_agent(
         # Ensure the recording directory exists if recording is enabled
         if save_recording_path:
             os.makedirs(save_recording_path, exist_ok=True)
-
+        screen_shot = None
         # Get the list of existing videos before the agent runs
         existing_videos = set()
         if save_recording_path:
@@ -133,7 +133,7 @@ async def  run_browser_agent(
             api_key=llm_api_key,
         )
         if agent_type == "org":
-            final_result, errors, model_actions, model_thoughts, trace_file, history_file = await run_org_agent(
+            final_result, errors, model_actions, model_thoughts, trace_file, history_file, = await run_org_agent(
                 llm=llm,
                 use_own_browser=use_own_browser,
                 keep_browser_open=keep_browser_open,
@@ -151,7 +151,7 @@ async def  run_browser_agent(
                 tool_call_in_content=tool_call_in_content
             )
         elif agent_type == "custom":
-            final_result, errors, model_actions, model_thoughts, trace_file, history_file = await run_custom_agent(
+            final_result, errors, model_actions, model_thoughts, trace_file, history_file, screen_shot = await run_custom_agent(
                 llm=llm,
                 use_own_browser=use_own_browser,
                 keep_browser_open=keep_browser_open,
@@ -190,6 +190,7 @@ async def  run_browser_agent(
             latest_video,
             trace_file,
             history_file,
+            screen_shot,
             gr.update(value="Stop", interactive=True),  # Re-enable stop button
             gr.update(interactive=True)    # Re-enable run button
         )
@@ -206,6 +207,7 @@ async def  run_browser_agent(
             None,                                       # latest_video
             None,                                       # history_file
             None,                                       # trace_file
+            None,                                       # screen_shot
             gr.update(value="Stop", interactive=True),  # Re-enable stop button
             gr.update(interactive=True)    # Re-enable run button
         )
@@ -382,10 +384,11 @@ async def run_custom_agent(
         errors = history.errors()
         model_actions = history.model_actions()
         model_thoughts = history.model_thoughts()
+        screen_shot = history.screenshots()[-1] if history.screenshots() else None
 
         trace_file = get_latest_files(save_trace_path)        
 
-        return final_result, errors, model_actions, model_thoughts, trace_file.get('.zip'), history_file
+        return final_result, errors, model_actions, model_thoughts, trace_file.get('.zip'), history_file, screen_shot
     except Exception as e:
         import traceback
         traceback.print_exc()
