@@ -2,9 +2,9 @@ import requests
 
 url = "http://127.0.0.1:8004/trigger_bt"
 payload = {
-    "task": "Navigate to the login page and inspect the login form fields for email and password.",
+    "task": "Naviagte to https://shinobi.security and book a demo for tomorrow",
     "add_infos": "",
-    "url": "https://ambassador-booking-staging.castusdev.co.uk/login"
+    "url": "https://mrporter.com"
 }
 
 response = requests.post(url, json=payload)
@@ -17,5 +17,9 @@ if response.status_code == 200:
     print(result["errors"])
     print("\nModel Actions:")
     print(result["model_actions"])
+    print("\Screenshot:")
+    print(result["sc"])
+    print("\DOM:")
+    print(result["final_dom"])
 else:
     print(f"Request failed with status code: {response.status_code}")

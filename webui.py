@@ -116,6 +116,7 @@ async def  run_browser_agent(
         if save_recording_path:
             os.makedirs(save_recording_path, exist_ok=True)
         screen_shot = None
+        final_dom = None
         # Get the list of existing videos before the agent runs
         existing_videos = set()
         if save_recording_path:
@@ -151,7 +152,7 @@ async def  run_browser_agent(
                 tool_call_in_content=tool_call_in_content
             )
         elif agent_type == "custom":
-            final_result, errors, model_actions, model_thoughts, trace_file, history_file, screen_shot = await run_custom_agent(
+            final_result, errors, model_actions, model_thoughts, trace_file, history_file, screen_shot, final_dom = await run_custom_agent(
                 llm=llm,
                 use_own_browser=use_own_browser,
                 keep_browser_open=keep_browser_open,
@@ -191,6 +192,7 @@ async def  run_browser_agent(
             trace_file,
             history_file,
             screen_shot,
+            final_dom,
             gr.update(value="Stop", interactive=True),  # Re-enable stop button
             gr.update(interactive=True)    # Re-enable run button
         )
@@ -386,9 +388,13 @@ async def run_custom_agent(
         model_thoughts = history.model_thoughts()
         screen_shot = history.screenshots()[-1] if history.screenshots() else None
 
+        final_dom = None
+        final_page = agent.browser_context.page
+        final_dom = await final_page.content()
+
         trace_file = get_latest_files(save_trace_path)        
 
-        return final_result, errors, model_actions, model_thoughts, trace_file.get('.zip'), history_file, screen_shot
+        return final_result, errors, model_actions, model_thoughts, trace_file.get('.zip'), history_file, screen_shot, final_dom
     except Exception as e:
         import traceback
         traceback.print_exc()

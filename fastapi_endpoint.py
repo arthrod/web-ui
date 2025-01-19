@@ -61,7 +61,7 @@ async def trigger_function(request: Request):
         tool_call_in_content=tool_call_in_content
     )
 
-    final_result, errors, model_actions, model_thoughts, latest_video, trace_file, history_file, sc, _, _ = result
+    final_result, errors, model_actions, model_thoughts, latest_video, trace_file, history_file, sc, final_dom, _, _ = result
     try:
         input_file = "logs/mitmproxy_endpoint_log.jsonl"
         output_file = "logs/filtered_mitmproxy_endpoint_log.jsonl"
@@ -75,4 +75,5 @@ async def trigger_function(request: Request):
         "errors": errors,
         "model_actions": model_actions,
         "sc": sc,
+        "final_dom": final_dom
     }
