@@ -28,6 +28,8 @@ from browser_use.browser.context import (
     BrowserContextConfig,
     BrowserContextWindowSize,
 )
+
+from playwright._impl._api_structures import ProxySettings
 from playwright.async_api import async_playwright
 from src.utils.agent_state import AgentState
 
@@ -78,7 +80,7 @@ async def stop_agent():
             gr.update(interactive=True)
         )
 
-async def run_browser_agent(
+async def  run_browser_agent(
         agent_type,
         llm_provider,
         llm_model_name,
@@ -332,14 +334,16 @@ async def run_custom_agent(
 
         controller = CustomController()
 
+        _global_browser = None
         # Initialize global browser if needed
         if _global_browser is None:
+            mitmproxy_cert_path: str = "~/.mitmproxy/mitmproxy-ca-cert.pem"
             _global_browser = CustomBrowser(
                 config=BrowserConfig(
                     headless=headless,
                     disable_security=disable_security,
                     chrome_instance_path=chrome_path,
-                    extra_chromium_args=[f"--window-size={window_w},{window_h}"],
+                    extra_chromium_args=[f"--window-size={window_w},{window_h}", f"--ignore-certificate-errors-spki-list={mitmproxy_cert_path}", "--proxy-server=localhost:8069", "--ignore-certificate-errors"],
                 )
             )
 
