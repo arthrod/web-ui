@@ -103,8 +103,8 @@ async def trigger_function(request: Request):
     except Exception as e:
         print(f"Error filtering logs: {e}")
 
-    copy_folder("/app/logs", "/shared/logs")
-    copy_folder("/app/Downloads", "/shared/Downloads")
+    copy_folder("/app/logs", "/shared")
+    copy_folder("/app/Downloads", "/shared")
 
 
     return {
