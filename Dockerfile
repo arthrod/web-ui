@@ -54,6 +54,9 @@ RUN wget -qO /tmp/chrome-linux.zip https://commondatastorage.googleapis.com/chro
     chmod +x /opt/chromium/chrome-linux/chrome && \
     ln -s /opt/chromium/chrome-linux/chrome /usr/local/bin/chromium && \
     rm -f /tmp/chrome-linux.zip
+
+RUN mkdir -p /shared
+
 # Set up working directory
 WORKDIR /app
 

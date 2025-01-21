@@ -1,8 +1,42 @@
 # app.py
+import os
+import shutil
+import logging
+
 from fastapi import FastAPI, Request
 from webui import run_browser_agent
 from filter_mitm_logs import filter_jsonl_file
 app = FastAPI()
+
+
+def copy_folder(source_folder, destination_folder):
+    try:
+
+        if not os.path.exists(source_folder):
+            raise FileNotFoundError(f"Source folder does not exist: {source_folder}")
+        shutil.copytree(source_folder, os.path.join(destination_folder, os.path.basename(source_folder)),dirs_exist_ok=True)
+        logging.info(f"Successfully copied {source_folder} to {destination_folder}")
+
+    except FileNotFoundError as e:
+        logging.info(f"Could not find the folder: {source_folder}")
+    except Exception as e:
+        print(f"An unexpected error occurred when copying folder: {e}")
+
+
+def copy_file(source_file, destination_folder):
+    try:
+
+        if not os.path.isfile(source_file):
+            logging.info(f"Could not find the file: {source_file}")
+        if not os.path.exists(destination_folder):
+            os.makedirs(destination_folder)
+        shutil.copy(source_file, destination_folder)
+        print(f"Successfully copied {source_file} to {destination_folder}")
+
+    except FileNotFoundError as e:
+        logging.info(f"Could not find the file: {source_file}")
+    except Exception as e:
+        logging.warning(f"An unexpected error occurred when copying file: {e}")
 
 
 @app.post("/trigger_bt")
@@ -68,6 +102,9 @@ async def trigger_function(request: Request):
         filter_jsonl_file(input_file, output_file, url)
     except Exception as e:
         print(f"Error filtering logs: {e}")
+
+    copy_folder("/app/logs", "/shared/logs")
+    copy_folder("/app/Downloads", "/shared/Downloads")
 
 
     return {
