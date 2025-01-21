@@ -209,7 +209,8 @@ async def  run_browser_agent(
             None,                                       # latest_video
             None,                                       # history_file
             None,                                       # trace_file
-            None,                                       # screen_shot
+            None,                                       # final screenshot
+            None,                                       #final_dom
             gr.update(value="Stop", interactive=True),  # Re-enable stop button
             gr.update(interactive=True)    # Re-enable run button
         )
@@ -305,6 +306,7 @@ async def run_org_agent(
                 await _global_browser.close()
                 _global_browser = None
 
+
 async def run_custom_agent(
         llm,
         use_own_browser,
@@ -386,11 +388,12 @@ async def run_custom_agent(
         errors = history.errors()
         model_actions = history.model_actions()
         model_thoughts = history.model_thoughts()
-        screen_shot = history.screenshots()[-1] if history.screenshots() else None
 
-        final_dom = None
-        final_page = agent.browser_context.page
-        final_dom = await final_page.content()
+        #screen_shot = history.screenshots()[-1] if history.screenshots() else None
+
+        screen_shot = await utils.capture_screenshot(_global_browser_context)
+        final_dom = await utils.get_page_dom(_global_browser_context)
+
 
         trace_file = get_latest_files(save_trace_path)        
 
@@ -399,7 +402,7 @@ async def run_custom_agent(
         import traceback
         traceback.print_exc()
         errors = str(e) + "\n" + traceback.format_exc()
-        return '', errors, '', '', None, None
+        return '', errors, '', '', None, None, None, None
     finally:
         # Handle cleanup based on persistence configuration
         if not keep_browser_open:
