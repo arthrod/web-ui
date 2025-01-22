@@ -47,6 +47,7 @@ async def trigger_function(request: Request):
     task = body.get("task")
     url = body.get("url")
     add_infos = body.get("add_infos")
+    context = body.get("gbc")
 
     # Set the desired configuration values
     agent_type = "custom"
@@ -93,7 +94,8 @@ async def trigger_function(request: Request):
         max_steps=max_steps,
         use_vision=use_vision,
         max_actions_per_step=max_actions_per_step,
-        tool_call_in_content=tool_call_in_content
+        tool_call_in_content=tool_call_in_content,
+        gbc=context
     )
 
     final_result, errors, model_actions, model_thoughts, latest_video, trace_file, history_file, sc, final_dom, _, _ = result

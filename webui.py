@@ -102,7 +102,8 @@ async def  run_browser_agent(
         max_steps,
         use_vision,
         max_actions_per_step,
-        tool_call_in_content
+        tool_call_in_content,
+        gbc
 ):
     global _global_agent_state
     _global_agent_state.clear_stop()  # Clear any previous stop requests
@@ -168,7 +169,8 @@ async def  run_browser_agent(
                 max_steps=max_steps,
                 use_vision=use_vision,
                 max_actions_per_step=max_actions_per_step,
-                tool_call_in_content=tool_call_in_content
+                tool_call_in_content=tool_call_in_content,
+                gbc=gbc
             )
         else:
             raise ValueError(f"Invalid agent type: {agent_type}")
@@ -323,7 +325,8 @@ async def run_custom_agent(
         max_steps,
         use_vision,
         max_actions_per_step,
-        tool_call_in_content
+        tool_call_in_content,
+        gbc
 ):
     try:
         global _global_browser, _global_browser_context, _global_agent_state
@@ -353,6 +356,8 @@ async def run_custom_agent(
                 )
             )
 
+        if gbc is None:
+            _global_browser_context = gbc
         if _global_browser_context is None:
             _global_browser_context = await _global_browser.new_context(
                 config=BrowserContextConfig(

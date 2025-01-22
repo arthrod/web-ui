@@ -2,9 +2,10 @@ import requests
 
 url = "http://127.0.0.1:8004/trigger_bt"
 payload = {
-    "task": "Open the url https://ambassador-booking-staging.castusdev.co.uk/login and try to login via dummy credentails",
+    "task": "Try to login into the website",
     "add_infos": "In the final result, include the url of the page the task finished at",
-    "url": "https://ambassador-booking-staging.castusdev.co.uk/login"
+    "url": " http://example.com",
+    "gbc": None
 }
 
 response = requests.post(url, json=payload)
