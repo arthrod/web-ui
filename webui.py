@@ -346,14 +346,16 @@ async def run_custom_agent(
         _global_browser = None
         # Initialize global browser if needed
         if _global_browser is None:
-            mitmproxy_cert_path: str = "~/.mitmproxy/mitmproxy-ca-cert.pem"
+            #mitmproxy_cert_path: str = "~/.mitmproxy/mitmproxy-ca-cert.pem"
             _global_browser = CustomBrowser(
                 config=BrowserConfig(
                     headless=headless,
                     disable_security=disable_security,
                     chrome_instance_path=chrome_path,
-                    extra_chromium_args=[f"--window-size={window_w},{window_h}", f"--ignore-certificate-errors-spki-list={mitmproxy_cert_path}", "--proxy-server=localhost:8069", "--ignore-certificate-errors"],
+                    proxy={"server": "localhost:8069"},
+                    extra_chromium_args=[f"--window-size={window_w},{window_h}"],
                 )
+
             )
 
         if gbc is None:
@@ -369,6 +371,7 @@ async def run_custom_agent(
                     ),
                 )
             )
+
 
         # Create and run agent
         agent = CustomAgent(

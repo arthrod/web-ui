@@ -1,11 +1,20 @@
 import requests
 
 url = "http://127.0.0.1:8004/trigger_bt"
+# payload = {
+#     "task": "Navigate to website http://159.65.235.197:32771/ and login with creds username test and password test",
+#     "add_infos": "In the final result, include the url of the page the task finished at",
+#     "url": "http://159.65.235.197:32771/",
+#     "gbc": True,
+# }
+
+#, "--ignore-certificate-errors"
+
 payload = {
-    "task": "Try to login into the website",
+    "task": "Try to navigate website to shinobi.security and return the timing for the first available demo",
     "add_infos": "In the final result, include the url of the page the task finished at",
-    "url": " http://example.com",
-    "gbc": None
+    "url": "https://shinobi.security",
+    "gbc": True,
 }
 
 response = requests.post(url, json=payload)
