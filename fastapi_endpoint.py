@@ -6,6 +6,7 @@ import logging
 from fastapi import FastAPI, Request
 from webui import run_browser_agent
 from filter_mitm_logs import filter_jsonl_file
+from filter_dom import dom_main
 app = FastAPI()
 
 
@@ -46,6 +47,7 @@ async def trigger_function(request: Request):
     task = body.get("task")
     url = body.get("url")
     add_infos = body.get("add_infos")
+    context = body.get("gbc")
 
     # Set the desired configuration values
     agent_type = "custom"
@@ -92,7 +94,8 @@ async def trigger_function(request: Request):
         max_steps=max_steps,
         use_vision=use_vision,
         max_actions_per_step=max_actions_per_step,
-        tool_call_in_content=tool_call_in_content
+        tool_call_in_content=tool_call_in_content,
+        gbc=context
     )
 
     final_result, errors, model_actions, model_thoughts, latest_video, trace_file, history_file, sc, final_dom, _, _ = result
@@ -103,6 +106,12 @@ async def trigger_function(request: Request):
     except Exception as e:
         print(f"Error filtering logs: {e}")
 
+    os.makedirs("/app/Downloads", exist_ok=True)
+    with open("/app/Downloads/final_dom.html", "w") as f:
+        f.write(final_dom)
+
+    dom_main("/app/Downloads/final_dom.html", "/app/Downloads/external_js_dom.txt")
+
     copy_folder("/app/logs", "/shared")
     copy_folder("/app/Downloads", "/shared")
 
@@ -112,5 +121,4 @@ async def trigger_function(request: Request):
         "errors": errors,
         "model_actions": model_actions,
         "sc": sc,
-        "final_dom": final_dom
     }

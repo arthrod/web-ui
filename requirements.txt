@@ -8,3 +8,4 @@ mitmproxy
 fastapi
 uvicorn
 requests
+bs4
