@@ -21,9 +21,7 @@ class EndpointLogger:
     def request(self, flow: http.HTTPFlow) -> None:
         request = flow.request
         if self.is_blacklisted(request.url):
-            print(f"Skipped blacklisted request: {request.url}")
             return
-        print(f"Processing request: {flow.request.url}")
 
         body_text = base64.b64encode(request.content).decode('utf-8') if request.content else None
 
@@ -45,12 +43,10 @@ class EndpointLogger:
 
         if request.url:
             try:
-                print("Attempting to write request log...")
                 with open(self.log_file, "a") as f:
                     json.dump(log_entry, f)
                     f.write("\n")
                     f.flush()  # Force immediate write
-                print("Request log written successfully.")
             except Exception as e:
                 print(f"Error writing request log: {e}")
 
@@ -58,9 +54,7 @@ class EndpointLogger:
         response = flow.response
         url = self.requests_log.pop(flow.id, None)
         if url and self.is_blacklisted(url):
-            print(f"Skipped blacklisted request: {url}")
             return
-        print(f"Processing response: {flow.response.status_code}")
 
         body_text = base64.b64encode(response.content).decode('utf-8') if response.content else None
         log_entry = {
@@ -75,7 +69,6 @@ class EndpointLogger:
 
         if url:
             try:
-                print("Attempting to write response log...")
                 with open(self.log_file, "a") as f:
                     json.dump(log_entry, f)
                     f.write("\n")

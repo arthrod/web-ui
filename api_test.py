@@ -29,6 +29,12 @@ if response.status_code == 200:
     print(result["model_actions"])
     print("\Screenshot:")
     print(result["sc"])
+    print("\nMITM Logfile:")
+    print(result["mitm_logfile"])
+    print("\nDOM file:")
+    print(result["dom_file"])
+    print("\nExternal DOM:")
+    print(result["external_js_dom_file"])
 
 else:
     print(f"Request failed with status code: {response.status_code}")
