@@ -7,7 +7,6 @@ import time
 from fastapi import FastAPI, Request
 from webui import run_browser_agent
 from filter_mitm_logs import filter_jsonl_file
-from filter_dom import dom_main
 app = FastAPI()
 
 
@@ -101,21 +100,12 @@ async def trigger_function(request: Request):
 
     final_result, errors, model_actions, model_thoughts, latest_video, trace_file, history_file, sc, final_dom, _, _ = result
 
-    unix_timestamp = int(time.time())
-    output_file = f"logs/filtered_mitmproxy_endpoint_log_{unix_timestamp}.jsonl"
+    output_file = f"logs/filtered_mitmproxy_endpoint_log_{final_dom}.jsonl"
     try:
         input_file = "logs/mitmproxy_endpoint_log.jsonl"
         filter_jsonl_file(input_file, output_file, url)
     except Exception as e:
         print(f"Error filtering logs: {e}")
-
-    os.makedirs("/app/Downloads", exist_ok=True)
-
-    if final_dom:
-        with open(f"/app/Downloads/external_js_dom_{unix_timestamp}.html", "w") as f:
-            f.write(final_dom)
-
-        dom_main(f"/app/Downloads/external_js_dom_{unix_timestamp}.html", f"/app/Downloads/external_js_dom_{unix_timestamp}.txt")
 
     copy_folder("/app/logs", "/shared")
     copy_folder("/app/Downloads", "/shared")
@@ -127,6 +117,6 @@ async def trigger_function(request: Request):
         "model_actions": model_actions,
         "sc": sc,
         "mitm_logfile": output_file if os.path.exists(output_file) else None,
-        "dom_file": f"final_dom_{unix_timestamp}.html",
-        "external_js_dom_file": f"external_js_dom_{unix_timestamp}.txt",
+        "dom_file": f"final_dom_{final_dom}.html",
+        "external_js_dom_file": f"external_js_dom_{final_dom}.txt",
     }

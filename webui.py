@@ -16,6 +16,8 @@ import glob
 import asyncio
 import argparse
 import os
+import re
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +44,7 @@ from src.browser.custom_context import BrowserContextConfig, CustomBrowserContex
 from src.controller.custom_controller import CustomController
 from gradio.themes import Citrus, Default, Glass, Monochrome, Ocean, Origin, Soft, Base
 from src.utils.utils import update_model_dropdown, get_latest_files, capture_screenshot
+from filter_dom import dom_main
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -291,6 +294,7 @@ async def run_org_agent(
 
         trace_file = get_latest_files(save_trace_path)
 
+
         return final_result, errors, model_actions, model_thoughts, trace_file.get('.zip'), history_file
     except Exception as e:
         import traceback
@@ -401,11 +405,21 @@ async def run_custom_agent(
 
         screen_shot = await utils.capture_screenshot(_global_browser_context)
         final_dom = await utils.get_page_dom(_global_browser_context)
+        final_url = await utils.get_page_url(_global_browser_context)
+        if final_url:
+            altered_url = re.sub(r'\W+', '_', final_url.lower().strip()) + "_" + str(int(time.time()))
+        else:
+            altered_url = int(time.time())
+        os.makedirs("/app/Downloads", exist_ok=True)
 
+        if final_dom:
+            with open(f"/app/Downloads/external_js_dom_{altered_url}.html", "w") as f:
+                f.write(final_dom)
+            dom_main(f"/app/Downloads/external_js_dom_{altered_url}.html",f"/app/Downloads/external_js_dom_{altered_url}.txt")
 
         trace_file = get_latest_files(save_trace_path)        
 
-        return final_result, errors, model_actions, model_thoughts, trace_file.get('.zip'), history_file, screen_shot, final_dom
+        return final_result, errors, model_actions, model_thoughts, trace_file.get('.zip'), history_file, screen_shot, altered_url
     except Exception as e:
         import traceback
         traceback.print_exc()
