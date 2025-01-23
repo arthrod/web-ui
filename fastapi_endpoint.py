@@ -59,7 +59,7 @@ async def trigger_function(request: Request):
     use_own_browser = False
     keep_browser_open = True
     headless = False
-    disable_security = True
+    disable_security = False
     window_w = 1280
     window_h = 1100
     save_recording_path = "./tmp/record_videos"
@@ -107,10 +107,12 @@ async def trigger_function(request: Request):
         print(f"Error filtering logs: {e}")
 
     os.makedirs("/app/Downloads", exist_ok=True)
-    with open("/app/Downloads/final_dom.html", "w") as f:
-        f.write(final_dom)
 
-    dom_main("/app/Downloads/final_dom.html", "/app/Downloads/external_js_dom.txt")
+    if final_dom:
+        with open("/app/Downloads/final_dom.html", "w") as f:
+            f.write(final_dom)
+
+        dom_main("/app/Downloads/final_dom.html", "/app/Downloads/external_js_dom.txt")
 
     copy_folder("/app/logs", "/shared")
     copy_folder("/app/Downloads", "/shared")

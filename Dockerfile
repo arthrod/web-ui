@@ -49,11 +49,8 @@ RUN git clone https://github.com/novnc/noVNC.git /opt/novnc \
     && ln -s /opt/novnc/vnc.html /opt/novnc/index.html
 
 # Install Chromium
-RUN wget -qO /tmp/chrome-linux.zip https://commondatastorage.googleapis.com/chromium-browser-snapshots/Linux_x64/1402100/chrome-linux.zip && \
-    unzip /tmp/chrome-linux.zip -d /opt/chromium && \
-    chmod +x /opt/chromium/chrome-linux/chrome && \
-    ln -s /opt/chromium/chrome-linux/chrome /usr/local/bin/chromium && \
-    rm -f /tmp/chrome-linux.zip
+RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg \
+    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | tee /etc/apt/sources.list.d/google-chrome.list
 
 RUN mkdir -p /shared
 
@@ -75,10 +72,15 @@ COPY . .
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV BROWSER_USE_LOGGING_LEVEL=info
-ENV CHROME_PATH=/usr/local/bin/chromium
+ENV CHROME_PATH=/usr/bin/google-chrome
 ENV ANONYMIZED_TELEMETRY=false
 ENV DISPLAY=:99
 ENV RESOLUTION=1920x1080x24
+ENV CHROME_PERSISTENT_SESSION=false
+ENV RESOLUTION_WIDTH=1920
+ENV RESOLUTION_HEIGHT=1080
+
+RUN chmod +x /app/start_chromium_with_proxy.sh
 
 RUN mkdir -p /app/logs && \
     chmod 777 /app/logs && \
