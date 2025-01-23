@@ -233,3 +233,31 @@ async def get_page_dom(browser_context):
         return dom
     except Exception as e:
         return None
+
+
+async def get_page_url(browser_context):
+    """Retrieve the DOM of the current page"""
+    # Extract the Playwright browser instance
+    playwright_browser = browser_context.browser.playwright_browser  # Ensure this is correct.
+
+    # Check if the browser instance is valid and if an existing context can be reused
+    if playwright_browser and playwright_browser.contexts:
+        playwright_context = playwright_browser.contexts[0]
+    else:
+        return None
+
+    # Access pages in the context
+    pages = None
+    if playwright_context:
+        pages = playwright_context.pages
+
+    # Use an existing page or create a new one if none exist
+    if pages:
+        active_page = pages[0]
+        for page in pages:
+            if page.url != "about:blank":
+                active_page = page
+    else:
+        return None
+
+    return active_page.url if active_page else None
