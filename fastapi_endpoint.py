@@ -7,6 +7,7 @@ import time
 from fastapi import FastAPI, Request
 from webui import run_browser_agent
 from filter_mitm_logs import filter_jsonl_file
+from filter_dom import dom_main
 app = FastAPI()
 
 
@@ -59,9 +60,9 @@ async def trigger_function(request: Request):
     use_own_browser = False
     keep_browser_open = True
     headless = False
-    disable_security = False
-    window_w = 1280
-    window_h = 1100
+    disable_security = True
+    window_w = 1920
+    window_h = 1080
     save_recording_path = "./tmp/record_videos"
     save_agent_history_path = "./tmp/agent_history"
     save_trace_path = "./tmp/traces"
@@ -98,14 +99,16 @@ async def trigger_function(request: Request):
         gbc=context
     )
 
-    final_result, errors, model_actions, model_thoughts, latest_video, trace_file, history_file, sc, final_dom, _, _ = result
+    final_result, errors, model_actions, model_thoughts, latest_video, trace_file, history_file, sc, altered_suffix, _, _ = result
 
-    output_file = f"logs/filtered_mitmproxy_endpoint_log_{final_dom}.jsonl"
+    output_file = f"logs/filtered_mitmproxy_endpoint_log_{altered_suffix}.jsonl"
     try:
         input_file = "logs/mitmproxy_endpoint_log.jsonl"
         filter_jsonl_file(input_file, output_file, url)
     except Exception as e:
         print(f"Error filtering logs: {e}")
+
+    dom_main(f"/app/Downloads/{altered_suffix}.html",f"/app/Downloads/js_files_{altered_suffix}.txt")
 
     copy_folder("/app/logs", "/shared")
     copy_folder("/app/Downloads", "/shared")
@@ -117,6 +120,6 @@ async def trigger_function(request: Request):
         "model_actions": model_actions,
         "sc": sc,
         "mitm_logfile": output_file if os.path.exists(output_file) else None,
-        "dom_file": f"final_dom_{final_dom}.html",
-        "external_js_dom_file": f"external_js_dom_{final_dom}.txt",
+        "dom_file": f"{altered_suffix}.html",
+        "external_js_dom_file": f"js_files_{altered_suffix}.txt",
     }
