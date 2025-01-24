@@ -6,7 +6,9 @@
 # @FileName: utils.py
 import base64
 import os
+import re
 import time
+from urllib.parse import urlparse
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -261,3 +263,22 @@ async def get_page_url(browser_context):
         return None
 
     return active_page.url if active_page else None
+
+def generate_suffix_from_url(url):
+    # Parse the URL
+    parsed_url = urlparse(url)
+
+    # Extract the path and remove leading/trailing slashes
+    path = parsed_url.path.strip("/")
+
+    # If path is empty, use the netloc as a fallback
+    if not path:
+        path = parsed_url.netloc
+
+    print(f"Path (or fallback netloc) extracted - {path}")
+
+    # Apply the transformation using re.sub
+    transformed_path = re.sub(r'\W+', '_', path.lower().strip())
+
+    print(f"Transformed path - {transformed_path}")
+    return transformed_path
