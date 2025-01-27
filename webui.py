@@ -341,7 +341,7 @@ async def run_custom_agent(
         # Clear any previous stop request
         _global_agent_state.clear_stop()
 
-        image_path = "/shared/Uploads" + str(upload_file_path)
+        image_path = "/shared/Uploads/" + str(upload_file_path)
 
         if use_own_browser:
             chrome_path = os.getenv("CHROME_PATH", None)
