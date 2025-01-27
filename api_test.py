@@ -28,8 +28,10 @@ if response.status_code == 200:
     print(result["errors"])
     print("\nModel Actions:")
     print(result["model_actions"])
-    print("\Screenshot:")
-    print(result["sc"])
+    print("Screenshot:")
+    print(len(result["sc"]))
+    with open("screenshot.txt", "w") as f:
+        f.write(result["sc"])
     print("\nMITM Logfile:")
     print(result["mitm_logfile"])
     print("\nDOM file:")

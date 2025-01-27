@@ -1,6 +1,7 @@
 services:
   browser-use-webui:
     container_name: bu-container
+    image: browser-use
     # platform: linux/arm64
     build:
       context: .

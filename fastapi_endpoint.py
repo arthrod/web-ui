@@ -61,7 +61,7 @@ async def trigger_function(request: Request):
     use_own_browser = False
     keep_browser_open = True
     headless = False
-    disable_security = True
+    disable_security = False
     window_w = 1920
     window_h = 1080
     save_recording_path = "./tmp/record_videos"
@@ -103,7 +103,7 @@ async def trigger_function(request: Request):
 
     final_result, errors, model_actions, model_thoughts, latest_video, trace_file, history_file, sc, altered_suffix, _, _ = result
 
-    output_file = f"logs/filtered_mitmproxy_endpoint_log_{altered_suffix}.jsonl"
+    output_file = f"logs/filtered_mitmproxy_endpoint_log.jsonl"
     try:
         input_file = "logs/mitmproxy_endpoint_log.jsonl"
         filter_jsonl_file(input_file, output_file, url)
