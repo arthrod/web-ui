@@ -106,7 +106,8 @@ async def  run_browser_agent(
         use_vision,
         max_actions_per_step,
         tool_call_in_content,
-        gbc
+        gbc,
+        upload_file_path
 ):
     global _global_agent_state
     _global_agent_state.clear_stop()  # Clear any previous stop requests
@@ -173,7 +174,8 @@ async def  run_browser_agent(
                 use_vision=use_vision,
                 max_actions_per_step=max_actions_per_step,
                 tool_call_in_content=tool_call_in_content,
-                gbc=gbc
+                gbc=gbc,
+                upload_file_path=upload_file_path
             )
         else:
             raise ValueError(f"Invalid agent type: {agent_type}")
@@ -330,13 +332,16 @@ async def run_custom_agent(
         use_vision,
         max_actions_per_step,
         tool_call_in_content,
-        gbc
+        gbc,
+        upload_file_path
 ):
     try:
         global _global_browser, _global_browser_context, _global_agent_state
 
         # Clear any previous stop request
         _global_agent_state.clear_stop()
+
+        image_path = "/shared/Uploads" + str(upload_file_path)
 
         if use_own_browser:
             chrome_path = os.getenv("CHROME_PATH", None)
@@ -376,6 +381,8 @@ async def run_custom_agent(
                 )
             )
 
+        if upload_file_path:
+            _global_browser_context.set_uploadfile_path(image_path)
 
         # Create and run agent
         agent = CustomAgent(

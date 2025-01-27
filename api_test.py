@@ -11,10 +11,11 @@ url = "http://127.0.0.1:8004/trigger_bt"
 #, "--ignore-certificate-errors"
 
 payload = {
-    "task": "Try to navigate website to shinobi.security and return the timing for the first available demo",
+    "task": "Naviagte to https://0af2008403b3cb34aca2cd2400fa007f.web-security-academy.net/. Creds needed for login are: username - wiener, pasword - peter. Click on the upload picture and upload the file /app/picture.png and submit it",
     "add_infos": "In the final result, include the url of the page the task finished at",
     "url": "https://shinobi.security",
     "gbc": True,
+    "upload_file_path:": None
 }
 
 response = requests.post(url, json=payload)

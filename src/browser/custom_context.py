@@ -25,6 +25,7 @@ class CustomBrowserContext(BrowserContext):
         config: BrowserContextConfig = BrowserContextConfig()
     ):
         super(CustomBrowserContext, self).__init__(browser=browser, config=config)
+        self.uploadfile_path = None
 
     async def _create_context(self, browser: PlaywrightBrowser) -> PlaywrightBrowserContext:
         """Creates a new browser context with anti-detection measures and loads cookies if available."""
@@ -94,3 +95,9 @@ class CustomBrowserContext(BrowserContext):
         )
 
         return context
+
+    def set_uploadfile_path(self, path: str):
+        self.uploadfile_path = path
+
+    def get_uploadfile_path(self):
+        return self.uploadfile_path
