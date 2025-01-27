@@ -49,6 +49,7 @@ async def trigger_function(request: Request):
     url = body.get("url")
     add_infos = body.get("add_infos")
     context = body.get("gbc")
+    upload_file_path = body.get("upload_file_path", None)
 
     # Set the desired configuration values
     agent_type = "custom"
@@ -96,7 +97,8 @@ async def trigger_function(request: Request):
         use_vision=use_vision,
         max_actions_per_step=max_actions_per_step,
         tool_call_in_content=tool_call_in_content,
-        gbc=context
+        gbc=context,
+        upload_file_path=upload_file_path
     )
 
     final_result, errors, model_actions, model_thoughts, latest_video, trace_file, history_file, sc, altered_suffix, _, _ = result
