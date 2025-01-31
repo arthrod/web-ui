@@ -61,3 +61,10 @@ class CustomController(Controller):
         async def close_file_dialog(browser: BrowserContext):
             page = await browser.get_current_page()
             await page.keyboard.press('Escape')
+
+        @self.registry.action('Featch URL of the current page', requires_browser=True)
+        async def fetch_current_url(browser: BrowserContext):
+            page = await browser.get_current_page()
+            url = page.url
+            if url:
+                return ActionResult(extracted_content=url)
