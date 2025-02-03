@@ -11,9 +11,9 @@ url = "http://127.0.0.1:8004/trigger_bt"
 #, "--ignore-certificate-errors"
 
 payload = {
-    "task": "Naviagte to https://0af2008403b3cb34aca2cd2400fa007f.web-security-academy.net/. Creds needed for login are: username - wiener, pasword - peter. Click on the upload picture and upload the file /app/picture.png and submit it",
+    "task": "Naviagte to http://192.34.60.201/auth/login. Creds needed for login are: username - my@company.com, pasword - peter.",
     "add_infos": "In the final result, include the url of the page the task finished at",
-    "url": "https://shinobi.security",
+    "url": "http://192.34.60.201/auth/login",
     "gbc": True,
     "upload_file_path:": None
 }
