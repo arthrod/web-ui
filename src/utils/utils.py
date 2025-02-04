@@ -1,6 +1,8 @@
 import base64
 import os
+import re
 import time
+from urllib.parse import urlparse
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -225,3 +227,82 @@ async def capture_screenshot(browser_context):
         return encoded
     except Exception as e:
         return None
+
+async def get_page_dom(browser_context):
+    """Retrieve the DOM of the current page"""
+    # Extract the Playwright browser instance
+    playwright_browser = browser_context.browser.playwright_browser  # Ensure this is correct.
+
+    # Check if the browser instance is valid and if an existing context can be reused
+    if playwright_browser and playwright_browser.contexts:
+        playwright_context = playwright_browser.contexts[0]
+    else:
+        return None
+
+    # Access pages in the context
+    pages = None
+    if playwright_context:
+        pages = playwright_context.pages
+
+    # Use an existing page or create a new one if none exist
+    if pages:
+        active_page = pages[0]
+        for page in pages:
+            if page.url != "about:blank":
+                active_page = page
+    else:
+        return None
+
+    # Get the DOM of the page
+    try:
+        dom = await active_page.content()
+        return dom
+    except Exception as e:
+        return None
+
+
+async def get_page_url(browser_context):
+    """Retrieve the DOM of the current page"""
+    # Extract the Playwright browser instance
+    playwright_browser = browser_context.browser.playwright_browser  # Ensure this is correct.
+
+    # Check if the browser instance is valid and if an existing context can be reused
+    if playwright_browser and playwright_browser.contexts:
+        playwright_context = playwright_browser.contexts[0]
+    else:
+        return None
+
+    # Access pages in the context
+    pages = None
+    if playwright_context:
+        pages = playwright_context.pages
+
+    # Use an existing page or create a new one if none exist
+    if pages:
+        active_page = pages[0]
+        for page in pages:
+            if page.url != "about:blank":
+                active_page = page
+    else:
+        return None
+
+    return active_page.url if active_page else None
+
+def generate_suffix_from_url(url):
+    # Parse the URL
+    parsed_url = urlparse(url)
+
+    # Extract the path and remove leading/trailing slashes
+    path = parsed_url.path.strip("/")
+
+    # If path is empty, use the netloc as a fallback
+    if not path:
+        path = parsed_url.netloc
+
+    print(f"Path (or fallback netloc) extracted - {path}")
+
+    # Apply the transformation using re.sub
+    transformed_path = re.sub(r'\W+', '_', path.lower().strip())
+
+    print(f"Transformed path - {transformed_path}")
+    return transformed_path

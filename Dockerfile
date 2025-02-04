@@ -33,6 +33,8 @@ RUN apt-get update && apt-get install -y \
     tigervnc-tools \
     supervisor \
     net-tools \
+    mitmproxy \
+    libnss3-tools \
     procps \
     git \
     python3-numpy \
@@ -47,7 +49,7 @@ RUN git clone https://github.com/novnc/noVNC.git /opt/novnc \
     && git clone https://github.com/novnc/websockify /opt/novnc/utils/websockify \
     && ln -s /opt/novnc/vnc.html /opt/novnc/index.html
 
-# Install Chrome
+# Install Chromium
 RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg \
     && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | tee /etc/apt/sources.list.d/google-chrome.list
 
@@ -74,15 +76,29 @@ ENV CHROME_PATH=/usr/bin/google-chrome
 ENV ANONYMIZED_TELEMETRY=false
 ENV DISPLAY=:99
 ENV RESOLUTION=1920x1080x24
-ENV VNC_PASSWORD=vncpassword
-ENV CHROME_PERSISTENT_SESSION=true
+
+ENV CHROME_PERSISTENT_SESSION=false
 ENV RESOLUTION_WIDTH=1920
 ENV RESOLUTION_HEIGHT=1080
+
+RUN chmod +x /app/start_chromium_with_proxy.sh
+
+RUN mkdir -p /app/logs && \
+    chmod 777 /app/logs && \
+    touch /app/logs/mitmproxy_endpoint_log.jsonl && \
+    chmod 666 /app/logs/mitmproxy_endpoint_log.jsonl
+
+RUN mkdir -p /shared/Uploads && \
+    chmod 777 /shared/Uploads
+
+# Create and set permissions for the Uploads directory
+RUN mkdir -p /app/Uploads && \
+    chmod 777 /app/Uploads
 
 # Set up supervisor configuration
 RUN mkdir -p /var/log/supervisor
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-EXPOSE 7788 6080 5900
+EXPOSE 7788 6080 5906 8004
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

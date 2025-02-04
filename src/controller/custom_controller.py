@@ -29,3 +29,40 @@ class CustomController(Controller):
             await page.keyboard.type(text)
 
             return ActionResult(extracted_content=text)
+
+        @self.registry.action('Upload file to element',requires_browser=True)
+        async def upload_file(index: int, browser: BrowserContext):
+            path = browser.uploadfile_path
+            dom_el = await browser.get_dom_element_by_index(index)
+
+            if dom_el is None:
+                return ActionResult(error=f'No element found at index {index}')
+
+            file_upload_dom_el = dom_el.get_file_upload_element()
+
+            if file_upload_dom_el is None:
+                return ActionResult(error=f'No file upload element found at index {index}')
+
+            file_upload_el = await browser.get_locate_element(file_upload_dom_el)
+
+            if file_upload_el is None:
+                return ActionResult(error=f'No file upload element found at index {index}')
+
+            try:
+                await file_upload_el.set_input_files(path)
+                msg = f'Successfully uploaded file to index {index}'
+                return ActionResult(extracted_content=msg)
+            except Exception as e:
+                return ActionResult(error=f'Failed to upload file to index {index}')
+
+        @self.registry.action('Close file dialog', requires_browser=True)
+        async def close_file_dialog(browser: BrowserContext):
+            page = await browser.get_current_page()
+            await page.keyboard.press('Escape')
+
+        @self.registry.action('Featch URL of the current page', requires_browser=True)
+        async def fetch_current_url(browser: BrowserContext):
+            page = await browser.get_current_page()
+            url = page.url
+            if url:
+                return ActionResult(extracted_content=url)

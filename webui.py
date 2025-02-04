@@ -9,6 +9,8 @@ import glob
 import asyncio
 import argparse
 import os
+import re
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +23,9 @@ from browser_use.browser.context import (
     BrowserContextConfig,
     BrowserContextWindowSize,
 )
-from langchain_ollama import ChatOllama
+
+
+from playwright._impl._api_structures import ProxySettings
 from playwright.async_api import async_playwright
 from src.utils.agent_state import AgentState
 
@@ -34,6 +38,10 @@ from src.controller.custom_controller import CustomController
 from gradio.themes import Citrus, Default, Glass, Monochrome, Ocean, Origin, Soft, Base
 from src.utils.default_config_settings import default_config, load_config_from_file, save_config_to_file, save_current_config, update_ui_from_config
 from src.utils.utils import update_model_dropdown, get_latest_files, capture_screenshot
+
+
+from dotenv import load_dotenv
+load_dotenv()
 
 
 # Global variables for persistence
@@ -70,7 +78,7 @@ async def stop_agent():
             gr.update(interactive=True)
         )
 
-async def run_browser_agent(
+async def  run_browser_agent(
         agent_type,
         llm_provider,
         llm_model_name,
@@ -93,6 +101,9 @@ async def run_browser_agent(
         use_vision,
         max_actions_per_step,
         tool_calling_method
+        gbc,
+        upload_file_path
+
 ):
     global _global_agent_state
     _global_agent_state.clear_stop()  # Clear any previous stop requests
@@ -105,7 +116,8 @@ async def run_browser_agent(
         # Ensure the recording directory exists if recording is enabled
         if save_recording_path:
             os.makedirs(save_recording_path, exist_ok=True)
-
+        screen_shot = None
+        final_dom = None
         # Get the list of existing videos before the agent runs
         existing_videos = set()
         if save_recording_path:
@@ -123,7 +135,7 @@ async def run_browser_agent(
             api_key=llm_api_key,
         )
         if agent_type == "org":
-            final_result, errors, model_actions, model_thoughts, trace_file, history_file = await run_org_agent(
+            final_result, errors, model_actions, model_thoughts, trace_file, history_file, = await run_org_agent(
                 llm=llm,
                 use_own_browser=use_own_browser,
                 keep_browser_open=keep_browser_open,
@@ -141,7 +153,7 @@ async def run_browser_agent(
                 tool_calling_method=tool_calling_method
             )
         elif agent_type == "custom":
-            final_result, errors, model_actions, model_thoughts, trace_file, history_file = await run_custom_agent(
+            final_result, errors, model_actions, model_thoughts, trace_file, history_file, screen_shot, final_dom = await run_custom_agent(
                 llm=llm,
                 use_own_browser=use_own_browser,
                 keep_browser_open=keep_browser_open,
@@ -158,6 +170,9 @@ async def run_browser_agent(
                 use_vision=use_vision,
                 max_actions_per_step=max_actions_per_step,
                 tool_calling_method=tool_calling_method
+                gbc=gbc,
+                upload_file_path=upload_file_path
+
             )
         else:
             raise ValueError(f"Invalid agent type: {agent_type}")
@@ -180,6 +195,8 @@ async def run_browser_agent(
             latest_video,
             trace_file,
             history_file,
+            screen_shot,
+            final_dom,
             gr.update(value="Stop", interactive=True),  # Re-enable stop button
             gr.update(interactive=True)    # Re-enable run button
         )
@@ -199,6 +216,8 @@ async def run_browser_agent(
             None,                                       # latest_video
             None,                                       # history_file
             None,                                       # trace_file
+            None,                                       # final screenshot
+            None,                                       #final_dom
             gr.update(value="Stop", interactive=True),  # Re-enable stop button
             gr.update(interactive=True)    # Re-enable run button
         )
@@ -281,6 +300,7 @@ async def run_org_agent(
 
         trace_file = get_latest_files(save_trace_path)
 
+
         return final_result, errors, model_actions, model_thoughts, trace_file.get('.zip'), history_file
     except Exception as e:
         import traceback
@@ -297,6 +317,7 @@ async def run_org_agent(
             if _global_browser:
                 await _global_browser.close()
                 _global_browser = None
+
 
 async def run_custom_agent(
         llm,
@@ -315,6 +336,8 @@ async def run_custom_agent(
         use_vision,
         max_actions_per_step,
         tool_calling_method
+        gbc,
+        upload_file_path
 ):
     try:
         global _global_browser, _global_browser_context, _global_agent_state
@@ -323,6 +346,8 @@ async def run_custom_agent(
         _global_agent_state.clear_stop()
 
         extra_chromium_args = [f"--window-size={window_w},{window_h}"]
+        image_path = "/shared/Uploads/" + str(upload_file_path)
+
         if use_own_browser:
             chrome_path = os.getenv("CHROME_PATH", None)
             if chrome_path == "":
@@ -335,17 +360,23 @@ async def run_custom_agent(
 
         controller = CustomController()
 
+        _global_browser = None
         # Initialize global browser if needed
         if _global_browser is None:
+            #mitmproxy_cert_path: str = "~/.mitmproxy/mitmproxy-ca-cert.pem"
             _global_browser = CustomBrowser(
                 config=BrowserConfig(
                     headless=headless,
                     disable_security=disable_security,
                     chrome_instance_path=chrome_path,
                     extra_chromium_args=extra_chromium_args,
+                    proxy={"server": "localhost:8069"},
                 )
+
             )
 
+        if gbc is None:
+            _global_browser_context = gbc
         if _global_browser_context is None:
             _global_browser_context = await _global_browser.new_context(
                 config=BrowserContextConfig(
@@ -357,7 +388,11 @@ async def run_custom_agent(
                     ),
                 )
             )
-            
+
+
+        if upload_file_path:
+            _global_browser_context.set_uploadfile_path(image_path)
+
         # Create and run agent
         agent = CustomAgent(
             task=task,
@@ -383,14 +418,32 @@ async def run_custom_agent(
         model_actions = history.model_actions()
         model_thoughts = history.model_thoughts()
 
+        #screen_shot = history.screenshots()[-1] if history.screenshots() else None
+
+        screen_shot = await utils.capture_screenshot(_global_browser_context)
+        final_dom = await utils.get_page_dom(_global_browser_context)
+        final_url = await utils.get_page_url(_global_browser_context)
+
+
+        if final_url:
+            altered_url = utils.generate_suffix_from_url(final_url)
+        else:
+            altered_url = int(time.time())
+
+        os.makedirs("/app/Downloads", exist_ok=True)
+
+        if final_dom:
+            with open(f"/app/Downloads/{altered_url}.html", "w") as f:
+                f.write(final_dom)
+
         trace_file = get_latest_files(save_trace_path)        
 
-        return final_result, errors, model_actions, model_thoughts, trace_file.get('.zip'), history_file
+        return final_result, errors, model_actions, model_thoughts, trace_file.get('.zip'), history_file, screen_shot, altered_url
     except Exception as e:
         import traceback
         traceback.print_exc()
         errors = str(e) + "\n" + traceback.format_exc()
-        return '', errors, '', '', None, None
+        return '', errors, '', '', None, None, None, None
     finally:
         # Handle cleanup based on persistence configuration
         if not keep_browser_open:
