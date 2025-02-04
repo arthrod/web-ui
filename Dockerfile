@@ -3,6 +3,7 @@ FROM python:3.11-slim
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     wget \
+    netcat-traditional \
     gnupg \
     curl \
     unzip \
@@ -61,6 +62,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 RUN playwright install --with-deps chromium
 RUN playwright install-deps
+RUN apt-get install -y google-chrome-stable
 
 # Copy the application code
 COPY . .
@@ -73,6 +75,9 @@ ENV ANONYMIZED_TELEMETRY=false
 ENV DISPLAY=:99
 ENV RESOLUTION=1920x1080x24
 ENV VNC_PASSWORD=vncpassword
+ENV CHROME_PERSISTENT_SESSION=true
+ENV RESOLUTION_WIDTH=1920
+ENV RESOLUTION_HEIGHT=1080
 
 # Set up supervisor configuration
 RUN mkdir -p /var/log/supervisor
