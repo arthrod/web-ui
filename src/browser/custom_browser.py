@@ -15,6 +15,7 @@ from playwright.async_api import BrowserContext as PlaywrightBrowserContext
 import logging
 
 from .custom_context import CustomBrowserContext
+from security import safe_command
 
 logger = logging.getLogger(__name__)
 
@@ -48,8 +49,7 @@ class CustomBrowser(Browser):
             logger.debug('No existing Chrome instance found, starting a new one')
 
         # Start a new Chrome instance
-        subprocess.Popen(
-            [
+        safe_command.run(subprocess.Popen, [
                 self.config.chrome_instance_path,
                 '--remote-debugging-port=9222',
             ] + self.config.extra_chromium_args,
