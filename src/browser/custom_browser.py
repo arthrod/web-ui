@@ -15,6 +15,7 @@ from playwright.async_api import BrowserContext as PlaywrightBrowserContext
 import logging
 
 from .custom_context import CustomBrowserContext
+from security import safe_requests
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,7 @@ class CustomBrowser(Browser):
 
         try:
             # Check if browser is already running
-            response = requests.get('http://localhost:9222/json/version', timeout=2)
+            response = safe_requests.get('http://localhost:9222/json/version', timeout=2)
             if response.status_code == 200:
                 logger.info('Reusing existing Chrome instance')
                 browser = await playwright.chromium.connect_over_cdp(
@@ -60,7 +61,7 @@ class CustomBrowser(Browser):
         # try to connect first in case the browser have not started
         for _ in range(10):
             try:
-                response = requests.get('http://localhost:9222/json/version', timeout=2)
+                response = safe_requests.get('http://localhost:9222/json/version', timeout=2)
                 if response.status_code == 200:
                     break
             except requests.ConnectionError:
