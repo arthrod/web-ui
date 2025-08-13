@@ -2,6 +2,7 @@ import os
 import pickle
 import uuid
 import gradio as gr
+import fickling
 
 
 def default_config():
@@ -35,7 +36,7 @@ def load_config_from_file(config_file):
     """Load settings from a UUID.pkl file."""
     try:
         with open(config_file, 'rb') as f:
-            settings = pickle.load(f)
+            settings = fickling.load(f)
         return settings
     except Exception as e:
         return f"Error loading configuration: {str(e)}"
