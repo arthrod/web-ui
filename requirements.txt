@@ -1,5 +1,5 @@
-browser-use==0.1.29
+browser-use==0.3.0
 pyperclip==1.9.0
-gradio==5.10.0
+gradio==5.34.1
 json-repair
 langchain-mistralai==0.2.4
